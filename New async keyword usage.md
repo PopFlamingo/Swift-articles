@@ -91,6 +91,9 @@ Additionally `async` could also be used in order to begin a block when there is 
 }
 ```
 
+In the base proposal, as any `await` call need to be done inside of an `async` function, and as an `async` function can only be called with `await`, the current proposed way to go back to synchronous code is to use `beginAsync {}`.
+The usage of `async` as described in the document may enable an elegant and well integrated way to make synchronous and asynchronous code talk together ; as this would be deeply integrated in the language syntax, this could potentially look less magical than `beginAsync`.
+
 
 ### Other cases that need to be considered
 How would **throwing** async functions be called from synchronous functions ?
