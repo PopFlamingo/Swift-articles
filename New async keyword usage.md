@@ -14,7 +14,7 @@ func downloadImage() async -> UIImage { ... }
 func someAsyncFunc() async {
 	var userData = async downloadUserData() // userData is of type Future<UserData> as we used async
 	var image = async downloadImage() // Equivalentely, image is of type Future<UIImage>
-	return await User(userData, image) // Await is somehow "unwarping" the futures
+	return await User(userData, image) // Await is somehow "unwarping" the futures back into UserData and UIImage
 }
 ```
 
