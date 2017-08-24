@@ -11,7 +11,7 @@ The usage of `async` could be particularly interesting in the case of returning 
 func downloadUserData() async -> UserData { ... }
 func downloadImage() async -> UIImage { ... }
 
-func someAsyncFunc() async {
+func someAsyncFunc() async -> User {
 	var userData = async downloadUserData() // userData is of type Future<UserData> as we used async
 	var image = async downloadImage() // Equivalentely, image is of type Future<UIImage>
 	return await User(userData, image) // Await is somehow "unwarping" the futures back into UserData and UIImage
@@ -20,7 +20,7 @@ func someAsyncFunc() async {
 
 This would have the advantage of reducing boilerplate code, as an equivalent direct usage of Future would have looked like this:
 ```swift
-func someAsyncFunc() async {
+func someAsyncFunc() async -> User {
 	var userData = Future { await downloadUserData() }
 	var image = Future { await downloadImage() }
 	return await User(userData.get(), image.get())
@@ -29,7 +29,7 @@ func someAsyncFunc() async {
 
 This also integrates well with throwing code: if `downloadUserData()` and `downloadImage()` were throwing, we could simply do:
 ```swift
-func someAsyncFunc() async throws {
+func someAsyncFunc() async throws -> User {
 	var userData = try async downloadUserData()
 	var image = try async downloadImage()
 	return await User(userData, image)
@@ -38,7 +38,7 @@ func someAsyncFunc() async throws {
 
 Whereas with direct usage of future this would probably look like this:
 ```swift
-func someAsyncFunc() async throws {
+func someAsyncFunc() async throws -> User {
 	var userData = Future { try await downloadUserData() }
 	var image = Future { try await downloadImage() }
 	return try await User(userData.get(), image.get())
