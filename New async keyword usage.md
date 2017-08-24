@@ -96,5 +96,8 @@ Additionally `async` could also be used in order to begin a block when there is 
 How would **throwing** async functions be called from synchronous functions ?
 
 
+## Conclusion
+This is just a draft and I didn't covered all cases, I'd be interrested to get some feedback about this idea! 🙂
 
-
+As this syntax doesn't seem to exist elsewhere I guess there might be some good reason not to use it, if its the case I'd be interrested to know why.
+Of course `async` is just some idea of name for a keyword and maybe this is too different from its meaning in the declaration of a function to be used this way, but I thought it still made some sense.
