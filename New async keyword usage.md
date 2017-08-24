@@ -8,6 +8,9 @@ I suggest extending its usage to call site, I see two main usages.
 ### For returning (throwing/non-throwing) functions
 The usage of `async` could be particularly interesting in the case of returning `async` (throwing/non-throwing) functions, here I propose to directly *synthesise* async preceded function calls as futures, which would enable this kind of design:
 ```swift
+func downloadUserData() async -> UserData { ... }
+func downloadImage() async -> UIImage { ... }
+
 func someAsyncFunc() async {
 	var userData = async downloadUserData() // userData is of type Future<UserData> as we used async
 	var image = async downloadImage() // Equivalentely, image is of type Future<UIImage>
