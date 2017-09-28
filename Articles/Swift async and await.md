@@ -9,13 +9,13 @@ The goal of this article is to make it easier to understand how `async`/`await` 
 
 **What do the `async` and `await` keywords do exactly?**
 Let's start with some code, here is how you will be declaring an async function:
-```
+```swift
 func myAsyncFunction() async -> SomeType { ... }
 ```
 *Notice that this is done the same way as if you was declaring a throwing function, except you are using `async` instead of `throws`*
 
 At first, the presence of the `async` keyword made me think that it was automatically modifying how the function was executed, probably because of the ressemblance to this:
-```
+```swift
 someDispatchQueue.async { … }
 ```
 
@@ -23,12 +23,12 @@ In reality, the only thing the `async` keyword does is that it transforms your f
 
 So what suspends the execution of a coroutine?
 In everyday code, the most common reason will be that your coroutine calls another coroutine that suspended itself, so it will be suspended too. For instance, if you have a `downloadData` function that asynchronously downloads the data at the specified URL:
-```
+```swift
 func downloadData(from: URL) async -> Data? { … }
 ```
 
 Then if you write a function like this:
-```
+```swift
 func downloadProfileImage(for user: User) async -> Image {
 	let rawData = await downloadData(from: user.profilePictureURL)!
 	let userImage = Image(with: rawData, format: .jpeg)
@@ -49,12 +49,12 @@ Again, I want to insist on the fact that the **only** thing that `async` does is
 While simply using async functions provided by various libraries will be really easy (seeing `async`/`await` as sugar for completion handlers should be enough if you are just using async APIs provided by frameworks), it is important to understand how things work under the hood if you are writing async functions for libraries.
 
 Because `async` doesn’t do much on its own, you have to manually specify how the code of your coroutine is dispatched, for instance, let’s say you want to create a function making a really lengthy computation on a potentially huge array :
-```
+```swift
 func lenghtyComputation(with elements: [SomeType]) async -> [SomeType] { … }
 ```
 
 If you implemented it this way:
-```
+```swift
 func lenghtyComputation(with elements: [SomeType]) async -> [SomeType] {
 	var modifiedElements = [SomeType]()
 	for element in elements {
@@ -64,7 +64,7 @@ func lenghtyComputation(with elements: [SomeType]) async -> [SomeType] {
 ```
 
 There would be no benefit from having marked your function as `async` because since your function does not suspend itself, it is treated as any usual function, so here:
-```
+```swift
 let transformedArray = await lenghtyComputation(with: aBigArray)
 ```
 
@@ -72,7 +72,7 @@ The thread would be blocked until `lengthyComputation` returns!
 
 How do we avoid blocking the thread?
 The most « bare bones » way of doing that is to use:
-```
+```swift
 func suspendAsync<T>(
   _ body: (_ continuation: @escaping (T) -> ()) -> ()
 ) async -> T
@@ -80,7 +80,7 @@ func suspendAsync<T>(
 
 When you call `suspendAsync`, it calls the `body` closure before suspending the coroutine, its inside of body that you specify how your asynchronous code will be dispatched (using the concurrency framework of your choice) and once the long running task you asynchronously dispatched is finished, you must resume the execution of the coroutine by calling the continuation closure (if needed, you can pass a value to `continuation`, which is similar to returning a value).
 An example may be easier to understand ! Using *Grand Central Dispatch* as your concurrency framework, the previous (intentionally wrong) example would be rewritten as:
-```
+```swift
 func lenghtyComputation(with elements: [SomeType]) async -> [SomeType] {
 	let result = await suspendAsync { continuation in // (1)
 		DispatchQueue(label: "someQueue", qos: .userInitiated).async { // (2)
@@ -113,7 +113,7 @@ There are quite a lot of elements to think about at the same time here :
 You learned how `suspendAsync` and `continuation` let us *suspend* and *resume* coroutines, now lets see how to *start* a coroutine — an async function — from a synchronous context — a *non-async* function.
 
 Aw we saw earlier, you need to call your `async` functions with `await` but await can only be called within `async`, the issue is that at some point, you’ll need to start your asynchronous function from a synchronous context. Again, as for `suspendAsync`, chances are that unless you are writing lower level library code, you won’t ever need to directly call it because the frameworks your app is based on will probably provide you with « async hooks », for instance, `UIKit` could provide you with `@IBAction`  that supports `async` functions, like this:
-```
+```swift
 @IBAction func buttonClicked(sender: UIButton) async {
 	let image = await downloadImage()
 	imageView.image = image
@@ -123,12 +123,12 @@ Aw we saw earlier, you need to call your `async` functions with `await` but awai
 This would « just work », as the framework would take the right steps under the hood to call your async function.
 
 If you need to implement it yourself at a lower level, you would go from synchronous code to asynchronous code using `beginAsync` :
-```
+```swift
 func beginAsync(_ body: () async throws -> Void) rethrows -> Void
 ```
 
 As you can see, the `body` closure that `beginAsync` takes is `async`, meaning that you can call `await` inside of this closure. If UIKit didn’t provided `async` IBActions and you needed to call an async function from your event handler, you would do:
-```
+```swift
 @IBAction func buttonClicked(sender: UIButton) {
 	beginAsync {
 		let image = await downloadImage()
@@ -143,7 +143,7 @@ Earlier, I also mentioned that the `continuation` you get in `suspendAsync` repr
 
 The `continuation` closure represents (*reifies*) the code **after** the call to `suspendAsync` up to the last line of the closest **beginAsync** closure in the call stack.
 Here is an example:
-```
+```swift
 func foo() async {
     print("Before suspendAsync in foo")
     suspendAsync { continuation in
@@ -171,7 +171,7 @@ func baz() {
 ```
 
 In this example, the `continuation` closure inside of `bar` will represent those instructions :
-```
+```swift
 print("After suspend async")
 print("After call to baz() inside of bar()")
 print("After call to bar()")
